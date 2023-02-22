@@ -57,6 +57,11 @@ public class PlacePageButtonFactory
         titleId = R.string.avoid_ferry_crossing_placepage;
         iconId = R.drawable.ic_avoid_ferry;
         break;
+      case ROUTE_CONTINUE:
+      case ROUTE_TO_OR_CONTINUE:
+        titleId = R.string.next_button;
+        iconId = R.drawable.ic_route_continue;
+        break;
       case MORE:
         titleId = R.string.placepage_more_button;
         iconId = R.drawable.ic_more;

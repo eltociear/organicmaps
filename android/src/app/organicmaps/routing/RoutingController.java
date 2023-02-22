@@ -603,6 +603,11 @@ public class RoutingController implements Initializable<Void>
     return mLastRouterType == Framework.ROUTER_TYPE_VEHICLE;
   }
 
+  boolean isHelicopterRouterType()
+  {
+    return mLastRouterType == Framework.ROUTER_TYPE_HELICOPTER;
+  }
+
   public boolean isNavigating()
   {
     return mState == State.NAVIGATION;
@@ -831,6 +836,34 @@ public class RoutingController implements Initializable<Void>
       Logger.d(TAG, "setEndPoint: swap with starting point");
       startPoint = endPoint;
 
+    }
+
+    endPoint = point;
+    setPointsInternal(startPoint, endPoint);
+    checkAndBuildRoute();
+    return true;
+  }
+
+  public boolean continueToPoint(@NonNull MapObject point)
+  {
+    MapObject startPoint = getStartPoint();
+    MapObject endPoint = getEndPoint();
+
+    final Pair<String, String> description = getDescriptionForPoint(point);
+    Framework.nativeContinueRouteToPoint(description.first /* title */, description.second /* subtitle */,
+                                         0 /* intermediateIndex */, MapObject.isOfType(MapObject.MY_POSITION, point),
+                                         point.getLat(), point.getLon());
+
+    if (point.sameAs(startPoint))
+    {
+      if (endPoint == null)
+      {
+        Logger.d(TAG, "setEndPoint: skip because end point is empty");
+        return false;
+      }
+
+      Logger.d(TAG, "setEndPoint: swap with starting point");
+      startPoint = endPoint;
     }
 
     endPoint = point;

@@ -399,6 +399,10 @@ public class PlacePageController extends Fragment implements
       case ROUTE_AVOID_FERRY:
         onAvoidFerryBtnClicked();
         break;
+
+      case ROUTE_CONTINUE:
+        onRouteContinueBtnClicked();
+        break;
     }
   }
 
@@ -494,6 +498,22 @@ public class PlacePageController extends Fragment implements
       mPlacePageRouteSettingsListener.onPlacePageRequestToggleRouteSettings(roadType);
   }
 
+  private void onRouteContinueBtnClicked()
+  {
+    RoutingController controller = RoutingController.get();
+    if (controller.isPlanning())
+    {
+      if (mMapObject != null)
+        controller.continueToPoint(mMapObject);
+      onPlacePageRequestClose();
+    }
+    else
+    {
+      // This should never happen 'cause "Continue route" button is visible only in route planning mode
+      ((MwmActivity) requireActivity()).startLocationToPoint(mMapObject);
+    }
+  }
+
   private void removePlacePageFragments()
   {
     final FragmentManager fm = getChildFragmentManager();
@@ -551,6 +571,10 @@ public class PlacePageController extends Fragment implements
     }
     else
     {
+      final PlacePageButtons.ButtonType bookmarkSaveDelete = mapObject.getMapObjectType() == MapObject.BOOKMARK
+                                                       ? PlacePageButtons.ButtonType.BOOKMARK_DELETE
+                                                       : PlacePageButtons.ButtonType.BOOKMARK_SAVE;
+
       final ParsedMwmRequest request = ParsedMwmRequest.getCurrentRequest();
       if (showBackButton || (request != null && request.isPickPointMode()))
         buttons.add(PlacePageButtons.ButtonType.BACK);
@@ -558,25 +582,23 @@ public class PlacePageController extends Fragment implements
       boolean needToShowRoutingButtons = RoutingController.get().isPlanning() || showRoutingButton;
 
       if (needToShowRoutingButtons)
+      {
         buttons.add(PlacePageButtons.ButtonType.ROUTE_FROM);
 
-      // If we can show the add route button, put it in the place of the bookmark button
-      // And move the bookmark button at the end
-      if (needToShowRoutingButtons && RoutingController.get().isStopPointAllowed())
-        buttons.add(PlacePageButtons.ButtonType.ROUTE_ADD);
-      else
-        buttons.add(mapObject.getMapObjectType() == MapObject.BOOKMARK
-                    ? PlacePageButtons.ButtonType.BOOKMARK_DELETE
-                    : PlacePageButtons.ButtonType.BOOKMARK_SAVE);
-
-      if (needToShowRoutingButtons)
-      {
-        buttons.add(PlacePageButtons.ButtonType.ROUTE_TO);
         if (RoutingController.get().isStopPointAllowed())
-          buttons.add(mapObject.getMapObjectType() == MapObject.BOOKMARK
-                      ? PlacePageButtons.ButtonType.BOOKMARK_DELETE
-                      : PlacePageButtons.ButtonType.BOOKMARK_SAVE);
+          buttons.add(PlacePageButtons.ButtonType.ROUTE_ADD);
+        else
+          buttons.add(bookmarkSaveDelete);
+
+        buttons.add(PlacePageButtons.ButtonType.ROUTE_TO);
+        if (RoutingController.get().isPlanning() && RoutingController.get().hasEndPoint())
+          buttons.add(PlacePageButtons.ButtonType.ROUTE_CONTINUE);
+
+        if (RoutingController.get().isStopPointAllowed())
+          buttons.add(bookmarkSaveDelete);
       }
+      else
+        buttons.add(bookmarkSaveDelete);
     }
     mViewModel.setCurrentButtons(buttons);
   }

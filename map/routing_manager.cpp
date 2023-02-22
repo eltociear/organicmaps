@@ -5,6 +5,7 @@
 
 #include "routing/absent_regions_finder.hpp"
 #include "routing/checkpoint_predictor.hpp"
+#include "routing/helicopter_router.hpp"
 #include "routing/index_router.hpp"
 #include "routing/route.hpp"
 #include "routing/routing_callbacks.hpp"
@@ -200,6 +201,7 @@ VehicleType GetVehicleType(RouterType routerType)
   case RouterType::Bicycle: return VehicleType::Bicycle;
   case RouterType::Vehicle: return VehicleType::Car;
   case RouterType::Transit: return VehicleType::Transit;
+  case RouterType::Helicopter: return VehicleType::Transit;
   case RouterType::Count: CHECK(false, ("Invalid type", routerType)); return VehicleType::Count;
   }
   UNREACHABLE();
@@ -479,7 +481,8 @@ RouterType RoutingManager::GetLastUsedRouter() const
   {
   case RouterType::Pedestrian:
   case RouterType::Bicycle:
-  case RouterType::Transit: return routerType;
+  case RouterType::Transit:
+  case RouterType::Helicopter: return routerType;
   default: return RouterType::Vehicle;
   }
 }
@@ -517,7 +520,11 @@ void RoutingManager::SetRouterImpl(RouterType type)
   auto regionsFinder =
       make_unique<AbsentRegionsFinder>(countryFileGetter, localFileChecker, numMwmIds, dataSource);
 
-  auto router = make_unique<IndexRouter>(vehicleType, m_loadAltitudes, m_callbacks.m_countryParentNameGetterFn,
+  std::unique_ptr<IRouter> router;
+  if (type == RouterType::Helicopter)
+    router = make_unique<HelicopterRouter>();
+  else
+    router = make_unique<IndexRouter>(vehicleType, m_loadAltitudes, m_callbacks.m_countryParentNameGetterFn,
                                          countryFileGetter, getMwmRectByName, numMwmIds,
                                          MakeNumMwmTree(*numMwmIds, m_callbacks.m_countryInfoGetter()),
                                          m_routingSession, dataSource);
@@ -668,7 +675,8 @@ bool RoutingManager::InsertRoute(Route const & route)
 
     auto const startPt = route.GetSubrouteAttrs(subrouteIndex).GetStart().GetPoint();
     auto subroute = CreateDrapeSubroute(segments, startPt, distance,
-                                        static_cast<double>(subroutesCount - subrouteIndex - 1), isTransitRoute);
+                                        static_cast<double>(subroutesCount - subrouteIndex - 1),
+                                        isTransitRoute);
     if (!subroute)
       continue;
     distance = segments.back().GetDistFromBeginningMerc();
@@ -700,6 +708,14 @@ bool RoutingManager::InsertRoute(Route const & route)
           subroute->m_routeType = df::RouteType::Bicycle;
           subroute->AddStyle(df::SubrouteStyle(df::kRouteBicycle, df::RoutePattern(8.0, 2.0)));
           FillTurnsDistancesForRendering(segments, subroute->m_baseDistance, subroute->m_turns);
+          break;
+        }
+      case RouterType::Helicopter:
+        {
+          subroute->m_routeType = df::RouteType::Helicopter;
+          subroute->m_headFakeDistance = -1.0f;
+          subroute->m_tailFakeDistance = 90.0f; //Assuming that Helicopter line is shorter than 90°. Otherwise line tail would have a gray color.
+          subroute->AddStyle(df::SubrouteStyle(df::kRouteHelicopter, df::RoutePattern(16.0, 2.0)));
           break;
         }
       default: CHECK(false, ("Unknown router type"));
@@ -835,6 +851,30 @@ void RoutingManager::AddRoutePoint(RouteMarkData && markData)
 
   markData.m_isVisible = !markData.m_isMyPosition;
   routePoints.AddRoutePoint(std::move(markData));
+  ReorderIntermediatePoints();
+}
+
+void RoutingManager::ContinueRouteToPoint(RouteMarkData && markData)
+{
+  ASSERT(m_bmManager != nullptr, ());
+  ASSERT(markData.m_pointType == RouteMarkType::Finish, ("New route point should have type RouteMarkType::Finish"));
+  RoutePointsLayout routePoints(*m_bmManager);
+
+  // Finish point is now Intermediate point
+  RouteMarkPoint * finishMarkData = routePoints.GetRoutePointForEdit(RouteMarkType::Finish);
+  finishMarkData->SetRoutePointType(RouteMarkType::Intermediate);
+  finishMarkData->SetIntermediateIndex(routePoints.GetRoutePointsCount()-1);
+
+  if (markData.m_isMyPosition)
+  {
+    RouteMarkPoint const * mark = routePoints.GetMyPositionPoint();
+    if (mark)
+      routePoints.RemoveRoutePoint(mark->GetRoutePointType(), mark->GetIntermediateIndex());
+  }
+
+  markData.m_intermediateIndex = routePoints.GetRoutePointsCount();
+  markData.m_isVisible = !markData.m_isMyPosition;
+  routePoints.AddRoutePoint(move(markData));
   ReorderIntermediatePoints();
 }
 

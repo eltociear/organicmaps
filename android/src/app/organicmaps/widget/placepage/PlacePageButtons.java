@@ -30,7 +30,6 @@ import java.util.List;
 public final class PlacePageButtons extends Fragment implements Observer<List<PlacePageButtons.ButtonType>>
 {
   public static final String PLACEPAGE_MORE_MENU_ID = "PLACEPAGE_MORE_MENU_BOTTOM_SHEET";
-  private static final String BUTTON_ROUTE_FINISH_OPTION = "button_route_finish_option";
 
   private int mMaxButtons;
 
@@ -114,71 +113,12 @@ public final class PlacePageButtons extends Fragment implements Observer<List<Pl
     LayoutInflater inflater = LayoutInflater.from(requireContext());
     final View parent = inflater.inflate(R.layout.place_page_button, mButtonsContainer, false);
 
-    boolean isMultiButton = current.getType() == ButtonType.ROUTE_TO_OR_CONTINUE;
-
     int actualTitle = current.getTitle();
     int actualIcon = current.getIcon();
     ButtonType actualType = current.getType();
 
-    if (isMultiButton)
-    {
-      // Read selected option
-      List<ButtonType> types = List.of(ButtonType.ROUTE_TO, ButtonType.ROUTE_CONTINUE);
-      int pickedButton = MwmApplication.prefs(requireContext()).getInt(BUTTON_ROUTE_FINISH_OPTION, 0);
-      if (pickedButton < 0 || pickedButton>=types.size())
-        pickedButton = 0;
-      actualType = types.get(pickedButton);
-
-      PlacePageButton actualButton = PlacePageButtonFactory.createButton(actualType, requireContext());
-      actualTitle = actualButton.getTitle();
-      actualIcon = actualButton.getIcon();
-
-      // Show up arrow icon
-      ImageView iconUp = parent.findViewById(R.id.icon_up);
-      iconUp.setImageDrawable(Graphics.tint(getContext(), R.drawable.ic_triangle_up, R.attr.iconTint));
-      UiUtils.show(iconUp);
-
-      parent.setOnLongClickListener((v) -> {
-        showButtonsSelectMenu(parent, types, BUTTON_ROUTE_FINISH_OPTION);
-
-        return true;
-      });
-    }
-
     setButtonType(parent, actualType, actualTitle, actualIcon);
     return parent;
-  }
-
-  private void showButtonsSelectMenu(View buttonView, List<ButtonType> types, String prefsKey)
-  {
-    final PopupMenu popup = new PopupMenu(requireContext(), buttonView);
-    final Menu menu = popup.getMenu();
-
-    for (int i=0; i < types.size(); i++)
-    {
-      PlacePageButton buttonData = PlacePageButtonFactory.createButton(types.get(i), requireContext());
-      MenuItem item = menu.add(Menu.NONE, i, i, buttonData.getTitle());
-      item.setIcon(Graphics.tint(getContext(), buttonData.getIcon(), R.attr.iconTint));
-    }
-
-    popup.setOnMenuItemClickListener(item -> {
-      final int selectedFinishOption = item.getItemId();
-      MwmApplication.prefs(requireContext())
-          .edit()
-          .putInt(prefsKey, selectedFinishOption)
-          .apply();
-
-      final ButtonType selectedType = types.get(selectedFinishOption);
-      final PlacePageButton selectedButton = PlacePageButtonFactory.createButton(selectedType, requireContext());
-      setButtonType(buttonView, selectedType, selectedButton.getTitle(), selectedButton.getIcon());
-
-      return true;
-    });
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-      popup.setForceShowIcon(true);
-
-    popup.show();
   }
 
   private void setButtonType(@NonNull View buttonView, @NonNull ButtonType buttonType,
@@ -219,7 +159,6 @@ public final class PlacePageButtons extends Fragment implements Observer<List<Pl
     ROUTE_AVOID_FERRY,
     ROUTE_AVOID_UNPAVED,
     ROUTE_CONTINUE,
-    ROUTE_TO_OR_CONTINUE,
     MORE
   }
 

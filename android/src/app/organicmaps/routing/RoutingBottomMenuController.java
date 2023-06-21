@@ -288,8 +288,8 @@ final class RoutingBottomMenuController implements View.OnClickListener
     TextView segmentsDesc = mNumbersFrame.findViewById(R.id.segments_desc);
     if (isHelicopter && Framework.nativeGetRoutePoints().length > 2) {
       RouteMarkData[] points = Framework.nativeGetRoutePoints();
-      segmentsDesc.setVisibility(View.VISIBLE);
       segmentsDesc.setText(makeSpannedRoutePointsInfo(mContext, points));
+      segmentsDesc.setVisibility(View.VISIBLE);
     }
     else {
       segmentsDesc.setVisibility(View.GONE);
@@ -338,7 +338,7 @@ final class RoutingBottomMenuController implements View.OnClickListener
       DistanceAndAzimut dist = Framework.nativeGetDistanceAndAzimuthFromLatLon(segmentStart.mLat, segmentStart.mLon, segmentEnd.mLat, segmentEnd.mLon, 0);
 
       if (i==0)
-        marker = "🟢";
+        marker = "🔵";
       else if (i == 1)
         marker = "①";
       else if (i == 2)
@@ -352,10 +352,15 @@ final class RoutingBottomMenuController implements View.OnClickListener
       else
         marker = "◯";
 
-      String label = marker + "\u00A0" + dist.getDistance().toString(context) + " ";
-      initTimeBuilderSequence(context, label, builder);
+      if(i==0)
+        initDistanceBuilderSequence(context, marker, builder);
+      else
+        initMarkerBuilderSequence(context, marker, builder);
+
+      String label = "\u00A0\u00A0" + dist.getDistance().toString(context) + "  ";
+      initDistanceBuilderSequence(context, label, builder);
     }
-    initTimeBuilderSequence(context, "🏁", builder);
+    initDistanceBuilderSequence(context, "🏁", builder);
 
     return builder;
   }
@@ -423,6 +428,27 @@ final class RoutingBottomMenuController implements View.OnClickListener
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
     builder.setSpan(new ForegroundColorSpan(ThemeUtils.getColor(context, android.R.attr.textColorPrimary)),
                     builder.length() - arrivalTime.length(),
+                    builder.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+  }
+
+  private static void initMarkerBuilderSequence(@NonNull Context context, @NonNull CharSequence marker,
+                                              @NonNull SpannableStringBuilder builder)
+  {
+    builder.append(marker);
+
+    builder.setSpan(new TypefaceSpan(context.getResources().getString(R.string.robotoMedium)),
+                    builder.length() - marker.length(),
+                    builder.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    builder.setSpan(new AbsoluteSizeSpan(context.getResources()
+                                                .getDimensionPixelSize(R.dimen.text_size_routing_plan_detail_intermediate)),
+                    builder.length() - marker.length(),
+                    builder.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    builder.setSpan(new ForegroundColorSpan(ThemeUtils.getColor(context,
+                                                                android.R.attr.colorPrimary)),
+                    builder.length() - marker.length(),
                     builder.length(),
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
   }

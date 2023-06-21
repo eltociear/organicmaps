@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import app.organicmaps.Framework;
 import app.organicmaps.R;
+import app.organicmaps.bookmarks.data.DistanceAndAzimut;
 import app.organicmaps.location.LocationHelper;
 import app.organicmaps.widget.recycler.DotDividerItemDecoration;
 import app.organicmaps.widget.recycler.MultilineLayoutManager;
@@ -284,6 +285,16 @@ final class RoutingBottomMenuController implements View.OnClickListener
     TextView numbersTime = mNumbersFrame.findViewById(R.id.time);
     numbersTime.setText(spanned);
 
+    TextView segmentsDesc = mNumbersFrame.findViewById(R.id.segments_desc);
+    if (isHelicopter && Framework.nativeGetRoutePoints().length > 2) {
+      RouteMarkData[] points = Framework.nativeGetRoutePoints();
+      segmentsDesc.setVisibility(View.VISIBLE);
+      segmentsDesc.setText(makeSpannedRoutePointsInfo(mContext, points));
+    }
+    else {
+      segmentsDesc.setVisibility(View.GONE);
+    }
+
     TextView numbersArrival = mNumbersFrame.findViewById(R.id.arrival);
     if (numbersArrival != null)
     {
@@ -306,13 +317,50 @@ final class RoutingBottomMenuController implements View.OnClickListener
       final String dot = "\u00A0• ";
       initDotBuilderSequence(context, dot, builder);
     }
+    else
+      // If we don't show time then we have place to show "Distance: " label
+      initDistanceBuilderSequence(context, context.getString(R.string.placepage_distance) + ": ", builder);
 
     initDistanceBuilderSequence(context, routingInfo.distToTarget.toString(context), builder);
 
     return builder;
   }
 
-  private static void initTimeBuilderSequence(@NonNull Context context, @NonNull CharSequence time,
+  @NonNull
+  private static Spanned makeSpannedRoutePointsInfo(@NonNull Context context, @NonNull RouteMarkData[] points)
+  {
+    final SpannableStringBuilder builder = new SpannableStringBuilder();
+
+    for(int i=0; i<points.length-1; i++) {
+      RouteMarkData segmentStart = points[i];
+      RouteMarkData segmentEnd = points[i+1];
+      String marker;
+      DistanceAndAzimut dist = Framework.nativeGetDistanceAndAzimuthFromLatLon(segmentStart.mLat, segmentStart.mLon, segmentEnd.mLat, segmentEnd.mLon, 0);
+
+      if (i==0)
+        marker = "🟢";
+      else if (i == 1)
+        marker = "①";
+      else if (i == 2)
+        marker = "②";
+      else if (i == 3)
+        marker = "③";
+      else if (i == 4)
+        marker = "④";
+      else if (i == 5)
+        marker = "⑤";
+      else
+        marker = "◯";
+
+      String label = marker + "\u00A0" + dist.getDistance().toString(context) + " ";
+      initTimeBuilderSequence(context, label, builder);
+    }
+    initTimeBuilderSequence(context, "🏁", builder);
+
+    return builder;
+  }
+
+    private static void initTimeBuilderSequence(@NonNull Context context, @NonNull CharSequence time,
                                               @NonNull SpannableStringBuilder builder)
   {
     builder.append(time);

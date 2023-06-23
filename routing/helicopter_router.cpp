@@ -21,7 +21,7 @@ void HelicopterRouter::SetGuides(GuidesTracks && guides) { /*m_guides = GuidesCo
    /                 F
   S
 
-  For example we need to build route from start (S) to finish (F) with intermidiate
+  For example we need to build route from start (S) to finish (F) with intermediate
   points (1) and (2).
   Target route should have parameters:
 
@@ -31,9 +31,9 @@ void HelicopterRouter::SetGuides(GuidesTracks && guides) { /*m_guides = GuidesCo
     +-------+--------+-----------------+---------------+
     | start | finish | beginSegmentIdx | endSegmentIdx |
     +-------+--------+-----------------+---------------+
-    | S     | 1      | 0               | 1             |
+    | S     | 1      | 0               | 2             |
     | 1     | 1      | 1               | 2             |
-    | 1     | 2      | 2               | 3             |
+    | 1     | 2      | 2               | 4             |
     | 2     | 2      | 3               | 4             |
     | 2     | F      | 4               | 6             |
     | 2     | F      | 4               | 6             |
@@ -77,9 +77,9 @@ RouterResultCode HelicopterRouter::CalculateRoute(Checkpoints const & checkpoint
     }
     else if (i > 0)
     {
-      // Duplicate intermidiate points.
-      RouteSegment intermidiateSegment = RouteSegment(segment, turn, junction, roadNameInfo);
-      routeSegments.push_back(move(intermidiateSegment));
+      // Duplicate intermediate points.
+      RouteSegment intermediateSegment = RouteSegment(segment, turn, junction, roadNameInfo);
+      routeSegments.push_back(move(intermediateSegment));
       times.push_back(0);
     }
   }
@@ -93,7 +93,7 @@ RouterResultCode HelicopterRouter::CalculateRoute(Checkpoints const & checkpoint
     if (i<points.size()-1)
     {
       auto subrt1 = Route::SubrouteAttrs(geometry::PointWithAltitude(points[i-1], mockAltitude),
-                                        geometry::PointWithAltitude(points[i], mockAltitude), i*2-2, i*2-1);
+                                        geometry::PointWithAltitude(points[i], mockAltitude), i*2-2, i*2);
       subroutes.push_back(move(subrt1));
 
       auto subrt2 = Route::SubrouteAttrs(geometry::PointWithAltitude(points[i-1], mockAltitude),

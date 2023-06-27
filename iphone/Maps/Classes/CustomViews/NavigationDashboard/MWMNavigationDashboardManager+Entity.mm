@@ -6,6 +6,7 @@
 #import "SwiftBridge.h"
 
 #import <AudioToolbox/AudioServices.h>
+#include <CoreApi/Framework.h>
 
 #include "routing/following_info.hpp"
 #include "routing/turns.hpp"
@@ -98,12 +99,49 @@ NSAttributedString *estimate(NSTimeInterval time, NSString *distance, NSString *
 
   return result;
 }
+
+NSAttributedString *buildRouteSegmentsLength(NSArray<MWMRoutePoint *> *points) {
+  auto result = [[NSMutableAttributedString alloc] initWithString:@""];
+  auto &frm = GetFramework();
+  for (int i = 1; i < [points count]; i++) {
+    MWMRoutePoint* segmentStart = points[i-1];
+    MWMRoutePoint* segmentEnd = points[i];
+    m2::PointD startPoint(mercator::LonToX(segmentStart.longitude), mercator::LatToY(segmentStart.latitude));
+    platform::Distance distance;
+    double azimut;
+    frm.GetDistanceAndAzimut(startPoint, segmentEnd.latitude, segmentEnd.longitude, 0, distance, azimut);
+
+    // Append point marker.
+    if (i==1) {
+      [result appendAttributedString:[[NSAttributedString alloc] initWithString:@"🔵"]];
+    }
+    else {
+      uint32_t ch = (i<22) ? (0x2460 + i - 2) : 0x25EF; // Calculate code for symbols: ①, ②, ③, etc. Use '◯' if more then 20 intermediate points
+      ch = OSSwapHostToLittleInt32(ch); // To make it byte-order safe
+      auto markerStr = [[NSString alloc] initWithBytes:&ch length:4 encoding:NSUTF32LittleEndianStringEncoding];
+      auto attrs = @{
+        NSFontAttributeName: [UIFont regular18]
+      };
+
+      [result appendAttributedString:[[NSAttributedString alloc] initWithString:markerStr attributes:attrs]];
+    }
+
+    // Append segment length.
+    auto segmentLengthStr = [NSString stringWithFormat:@" %@ %@ ", @(distance.GetDistanceString().c_str()),
+                             @(distance.GetUnitsString().c_str())];
+
+    [result appendAttributedString:[[NSAttributedString alloc] initWithString: segmentLengthStr]];
+  }
+  [result appendAttributedString: [[NSAttributedString alloc] initWithString: @"🏁"] ];
+  return result;
+}
 }  // namespace
 
 @interface MWMNavigationDashboardEntity ()
 
 @property(copy, nonatomic, readwrite) NSArray<MWMRouterTransitStepInfo *> *transitSteps;
 @property(copy, nonatomic, readwrite) NSAttributedString *estimate;
+@property(copy, nonatomic, readwrite) NSAttributedString *routeSegmentsLength;
 @property(copy, nonatomic, readwrite) NSString *distanceToTurn;
 @property(copy, nonatomic, readwrite) NSString *streetName;
 @property(copy, nonatomic, readwrite) NSString *targetDistance;
@@ -158,7 +196,7 @@ NSAttributedString *estimate(NSTimeInterval time, NSString *distance, NSString *
 
 @implementation MWMNavigationDashboardManager (Entity)
 
-- (void)updateFollowingInfo:(routing::FollowingInfo const &)info type:(MWMRouterType)type {
+- (void)updateFollowingInfo:(routing::FollowingInfo const &)info routePoints:(NSArray<MWMRoutePoint *> *)points type:(MWMRouterType)type {
   if ([MWMRouter isRouteFinished]) {
     [MWMRouter stopRouting];
     AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
@@ -180,6 +218,10 @@ NSAttributedString *estimate(NSTimeInterval time, NSString *distance, NSString *
 
     entity.estimate = estimate(entity.timeToTarget, entity.targetDistance, entity.targetUnits,
                                self.etaAttributes, self.etaSecondaryAttributes, NO, showEta);
+    if (type == MWMRouterTypeHelicopter && [points count] > 2)
+      entity.routeSegmentsLength = buildRouteSegmentsLength(points);
+    else
+      entity.routeSegmentsLength = nil;
 
     if (type == MWMRouterTypePedestrian) {
       entity.turnImage = image(info.m_pedestrianTurn);

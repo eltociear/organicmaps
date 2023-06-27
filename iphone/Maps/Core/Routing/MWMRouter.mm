@@ -345,11 +345,12 @@ char const *kRenderAltitudeImagesQueueLabel = "mapsme.mwmrouter.renderAltitudeIm
   auto const &rm = GetFramework().GetRoutingManager();
   routing::FollowingInfo info;
   rm.GetRouteFollowingInfo(info);
+  
   auto navManager = [MWMNavigationDashboardManager sharedManager];
   if ([MWMRouter type] == MWMRouterTypePublicTransport)
     [navManager updateTransitInfo:rm.GetTransitRouteInfo()];
   else
-    [navManager updateFollowingInfo:info type:[MWMRouter type]];
+    [navManager updateFollowingInfo:info routePoints:[MWMRouter points] type:[MWMRouter type]];
 }
 
 + (void)routeAltitudeImageForSize:(CGSize)size completion:(MWMImageHeightBlock)block {

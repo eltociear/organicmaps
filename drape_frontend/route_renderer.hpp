@@ -99,6 +99,7 @@ public:
   void SetSubrouteVisibility(dp::DrapeID id, bool isVisible);
 
   bool HasTransitData() const;
+  bool IsHelicopterRoute() const;
   bool HasData() const;
   bool HasPreviewData() const;
 

@@ -805,6 +805,16 @@ bool RouteRenderer::HasTransitData() const
   return false;
 }
 
+bool RouteRenderer::IsHelicopterRoute() const
+{
+  for (auto const & subroute : m_subroutes)
+  {
+    if (subroute.m_subroute->m_routeType == RouteType::Helicopter)
+      return true;
+  }
+  return false;
+}
+
 bool RouteRenderer::HasData() const
 {
   return !m_subroutes.empty();

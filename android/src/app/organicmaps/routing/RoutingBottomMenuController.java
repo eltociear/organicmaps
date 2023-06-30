@@ -339,13 +339,13 @@ final class RoutingBottomMenuController implements View.OnClickListener
   private static List<TransitStepInfo> pointsToTransitSteps(@NonNull RouteMarkData[] points, @NonNull Context context)
   {
     List<TransitStepInfo> transitSteps = new LinkedList<>();
-    for(int i=1; i<points.length; i++)
+    for (int i = 1; i<points.length; i++)
     {
-      RouteMarkData segmentStart = points[i-1];
+      RouteMarkData segmentStart = points[i - 1];
       RouteMarkData segmentEnd = points[i];
       DistanceAndAzimut dist = Framework.nativeGetDistanceAndAzimuthFromLatLon(segmentStart.mLat, segmentStart.mLon, segmentEnd.mLat, segmentEnd.mLon, 0);
-      if (i>1)
-        transitSteps.add(TransitStepInfo.intermediatePoint(i-2));
+      if (i > 1)
+        transitSteps.add(TransitStepInfo.intermediatePoint(i - 2));
       transitSteps.add(TransitStepInfo.helicopter(dist.getDistance().mDistanceStr, dist.getDistance().getUnitsStr(context)));
     }
 

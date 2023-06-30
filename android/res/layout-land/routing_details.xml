@@ -13,15 +13,11 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     tools:text="5 h 55 min • 1555km"/>
-  <TextView
-    android:id="@+id/segments_desc"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:singleLine="true"
-    android:ellipsize="end"
-    android:orientation="horizontal"
-    tools:text="🟢 2.5km ① 500m 🏁"
-    tools:visibility="visible" />
+  <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/route_details_rv"
+    android:layout_marginTop="@dimen/margin_half_plus"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>
   <TextView
     android:id="@+id/altitude_difference"
     android:layout_width="wrap_content"

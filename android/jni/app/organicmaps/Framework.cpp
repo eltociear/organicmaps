@@ -1482,7 +1482,7 @@ Java_app_organicmaps_Framework_nativeContinueRouteToPoint(JNIEnv * env, jclass, 
   data.m_pointType = RouteMarkType::Finish;
   data.m_intermediateIndex = static_cast<size_t>(intermediateIndex);
   data.m_isMyPosition = static_cast<bool>(isMyPosition);
-  data.m_position = m2::PointD(mercator::FromLatLon(lat, lon));
+  data.m_position = mercator::FromLatLon(lat, lon);
 
   frm()->GetRoutingManager().ContinueRouteToPoint(std::move(data));
 }

@@ -714,7 +714,8 @@ bool RoutingManager::InsertRoute(Route const & route)
         {
           subroute->m_routeType = df::RouteType::Helicopter;
           subroute->m_headFakeDistance = -1.0f;
-          subroute->m_tailFakeDistance = 90.0f; //Assuming that Helicopter line is shorter than 90°. Otherwise line tail would have a gray color.
+          //Assuming that Helicopter line is shorter than 90°. Otherwise line tail would have a gray color.
+          subroute->m_tailFakeDistance = 90.0f;
           subroute->AddStyle(df::SubrouteStyle(df::kRouteHelicopter, df::RoutePattern(16.0, 2.0)));
           break;
         }

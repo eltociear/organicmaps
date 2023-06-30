@@ -30,16 +30,11 @@
     android:layout_height="wrap_content"
     tools:text="5 h 55 min • 1555km"
     tools:visibility="visible" />
-  <TextView
-    android:id="@+id/segments_desc"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:maxLines="2"
-    android:ellipsize="end"
-    android:layout_below="@id/time"
-    android:layout_alignParentEnd="true"
+  <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/route_details_rv"
+    android:layout_marginTop="@dimen/margin_half_plus"
     android:layout_alignParentStart="true"
-    android:orientation="horizontal"
-    tools:text="🟢 2.5km ① 500m 🏁"
-    tools:visibility="visible" />
+    android:layout_below="@id/time"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>
 </RelativeLayout>

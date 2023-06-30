@@ -54,67 +54,58 @@ RouterResultCode HelicopterRouter::CalculateRoute(Checkpoints const & checkpoint
   geometry::Altitude const mockAltitude = 0;
   vector<RouteSegment> routeSegments;
   vector<double> times;
-  times.reserve(points.size()*2-1);
+  size_t const count = points.size();
+  ASSERT(count > 0, ());
+
+  times.reserve(count*2-1);
   Segment const segment(kFakeNumMwmId, 0, 0, false);
 
-  for (size_t i = 0; i < points.size(); ++i)
+  for (size_t i = 0; i < count; ++i)
   {
     turns::TurnItem turn(i, turns::PedestrianDirection::None);
     geometry::PointWithAltitude const junction(points[i], mockAltitude);
     RouteSegment::RoadNameInfo const roadNameInfo;
 
     auto routeSegment = RouteSegment(segment, turn, junction, roadNameInfo);
-    routeSegments.push_back(move(routeSegment));
+    routeSegments.emplace_back(segment, turn, junction, roadNameInfo);
     times.push_back(0);
 
-    if (i == points.size() - 1)
-    {
-      // Create final segment.
+    if (i == count - 1)
       turn = turns::TurnItem(i+1, turns::PedestrianDirection::ReachedYourDestination);
-      RouteSegment lastSegment = RouteSegment(segment, turn, junction, roadNameInfo);
-      routeSegments.push_back(move(lastSegment));
-      times.push_back(0);
-    }
-    else if (i > 0)
-    {
-      // Duplicate intermediate points.
-      RouteSegment intermediateSegment = RouteSegment(segment, turn, junction, roadNameInfo);
-      routeSegments.push_back(move(intermediateSegment));
-      times.push_back(0);
-    }
+    else if (i == 0)
+      continue;
+
+    routeSegments.emplace_back(segment, turn, junction, roadNameInfo);
+    times.push_back(0);
   }
 
   FillSegmentInfo(times, routeSegments);
-  route.SetRouteSegments(move(routeSegments));
+  route.SetRouteSegments(std::move(routeSegments));
+
+  auto const ToPointWA = [](m2::PointD const & p)
+  {
+    return geometry::PointWithAltitude(p, 0 /* altitude */);
+  };
 
   vector<Route::SubrouteAttrs> subroutes;
-  for(size_t i = 1; i < points.size(); ++i)
+  for(size_t i = 1; i < count; ++i)
   {
-    if (i<points.size()-1)
+    if (i < count-1)
     {
-      auto subrt1 = Route::SubrouteAttrs(geometry::PointWithAltitude(points[i-1], mockAltitude),
-                                        geometry::PointWithAltitude(points[i], mockAltitude), i*2-2, i*2);
-      subroutes.push_back(move(subrt1));
-
-      auto subrt2 = Route::SubrouteAttrs(geometry::PointWithAltitude(points[i-1], mockAltitude),
-                                        geometry::PointWithAltitude(points[i], mockAltitude), i*2-1, i*2);
-      subroutes.push_back(move(subrt2));
+      // Note: endSegmentIdx in decreased in Route::IsSubroutePassed(size_t) method. See routing/route.cpp:448
+      subroutes.emplace_back(ToPointWA(points[i-1]), ToPointWA(points[i]), i*2-2, i*2);
+      subroutes.emplace_back(ToPointWA(points[i-1]), ToPointWA(points[i]), i*2-1, i*2);
     }
     else
     {
-        // Duplicate last subroute attrs.
-        auto subrt = Route::SubrouteAttrs(geometry::PointWithAltitude(points[i-1], mockAltitude),
-                                          geometry::PointWithAltitude(points[i+1], mockAltitude), i*2-2, i*2);
-        subroutes.push_back(move(subrt));
-
-        subrt = Route::SubrouteAttrs(geometry::PointWithAltitude(points[i-1], mockAltitude),
-                                     geometry::PointWithAltitude(points[i+1], mockAltitude), i*2-2, i*2);
-        subroutes.push_back(move(subrt));
+      // Duplicate last subroute attrs.
+      subroutes.emplace_back(ToPointWA(points[i-1]), ToPointWA(points[i+1]), i*2-2, i*2);
+      subroutes.emplace_back(ToPointWA(points[i-1]), ToPointWA(points[i+1]), i*2-2, i*2);
     }
   }
 
   route.SetCurrentSubrouteIdx(checkpoints.GetPassedIdx());
-  route.SetSubroteAttrs(move(subroutes));
+  route.SetSubroteAttrs(std::move(subroutes));
 
   vector<m2::PointD> routeGeometry;
   for (auto p: points)

@@ -39,7 +39,6 @@ public class RoutingPlanController extends ToolbarController
   private final WheelProgressView mProgressTransit;
   @NonNull
   private final WheelProgressView mProgressBicycle;
-
   @NonNull
   private final WheelProgressView mProgressHelicopter;
 

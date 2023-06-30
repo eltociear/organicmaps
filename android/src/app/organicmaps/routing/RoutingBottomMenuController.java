@@ -37,6 +37,8 @@ import app.organicmaps.util.Graphics;
 import app.organicmaps.util.ThemeUtils;
 import app.organicmaps.util.UiUtils;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 final class RoutingBottomMenuController implements View.OnClickListener
@@ -285,15 +287,22 @@ final class RoutingBottomMenuController implements View.OnClickListener
     TextView numbersTime = mNumbersFrame.findViewById(R.id.time);
     numbersTime.setText(spanned);
 
-    TextView segmentsDesc = mNumbersFrame.findViewById(R.id.segments_desc);
-    if (isHelicopter && Framework.nativeGetRoutePoints().length > 2) {
+    RecyclerView routeDetails = mNumbersFrame.findViewById(R.id.route_details_rv);
+    if (isHelicopter && Framework.nativeGetRoutePoints().length > 2)
+    {
       RouteMarkData[] points = Framework.nativeGetRoutePoints();
-      segmentsDesc.setText(makeSpannedRoutePointsInfo(mContext, points));
-      segmentsDesc.setVisibility(View.VISIBLE);
+
+      TransitStepAdapter adapter = new TransitStepAdapter();
+      adapter.setItems(pointsToTransitSteps(points, mContext));
+      routeDetails.setLayoutManager(new MultilineLayoutManager());
+      routeDetails.setNestedScrollingEnabled(false);
+      routeDetails.removeItemDecoration(mTransitViewDecorator);
+      routeDetails.addItemDecoration(mTransitViewDecorator);
+      routeDetails.setAdapter(adapter);
+      routeDetails.setVisibility(View.VISIBLE);
     }
-    else {
-      segmentsDesc.setVisibility(View.GONE);
-    }
+    else
+      routeDetails.setVisibility(View.GONE);
 
     TextView numbersArrival = mNumbersFrame.findViewById(R.id.arrival);
     if (numbersArrival != null)
@@ -327,42 +336,20 @@ final class RoutingBottomMenuController implements View.OnClickListener
   }
 
   @NonNull
-  private static Spanned makeSpannedRoutePointsInfo(@NonNull Context context, @NonNull RouteMarkData[] points)
+  private static List<TransitStepInfo> pointsToTransitSteps(@NonNull RouteMarkData[] points, @NonNull Context context)
   {
-    final SpannableStringBuilder builder = new SpannableStringBuilder();
-
-    for(int i=0; i<points.length-1; i++) {
-      RouteMarkData segmentStart = points[i];
-      RouteMarkData segmentEnd = points[i+1];
-      String marker;
+    List<TransitStepInfo> transitSteps = new LinkedList<>();
+    for(int i=1; i<points.length; i++)
+    {
+      RouteMarkData segmentStart = points[i-1];
+      RouteMarkData segmentEnd = points[i];
       DistanceAndAzimut dist = Framework.nativeGetDistanceAndAzimuthFromLatLon(segmentStart.mLat, segmentStart.mLon, segmentEnd.mLat, segmentEnd.mLon, 0);
-
-      if (i==0)
-        marker = "🔵";
-      else if (i == 1)
-        marker = "①";
-      else if (i == 2)
-        marker = "②";
-      else if (i == 3)
-        marker = "③";
-      else if (i == 4)
-        marker = "④";
-      else if (i == 5)
-        marker = "⑤";
-      else
-        marker = "◯";
-
-      if(i==0)
-        initDistanceBuilderSequence(context, marker, builder);
-      else
-        initMarkerBuilderSequence(context, marker, builder);
-
-      String label = "\u00A0\u00A0" + dist.getDistance().toString(context) + "  ";
-      initDistanceBuilderSequence(context, label, builder);
+      if (i>1)
+        transitSteps.add(TransitStepInfo.intermediatePoint(i-2));
+      transitSteps.add(TransitStepInfo.helicopter(dist.getDistance().mDistanceStr, dist.getDistance().getUnitsStr(context)));
     }
-    initDistanceBuilderSequence(context, "🏁", builder);
 
-    return builder;
+    return transitSteps;
   }
 
     private static void initTimeBuilderSequence(@NonNull Context context, @NonNull CharSequence time,

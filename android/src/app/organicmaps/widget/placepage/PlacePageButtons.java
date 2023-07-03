@@ -1,14 +1,10 @@
 package app.organicmaps.widget.placepage;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.AttrRes;
@@ -18,7 +14,6 @@ import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.util.Graphics;
 import app.organicmaps.util.UiUtils;
@@ -131,6 +126,14 @@ public final class PlacePageButtons extends Fragment implements Observer<List<Pl
                               ? R.attr.iconTintActive
                               : R.attr.iconTint;
     iconImg.setImageDrawable(Graphics.tint(getContext(), icon, tint));
+
+    if (buttonType == ButtonType.ROUTE_ADD || buttonType == ButtonType.ROUTE_TO ||
+        buttonType == ButtonType.ROUTE_FROM || buttonType == ButtonType.ROUTE_CONTINUE)
+    {
+      iconImg.setRotation(90);
+    }
+    else
+      iconImg.setRotation(0);
 
     buttonView.setOnClickListener((view) -> {
       if (buttonType == ButtonType.MORE)

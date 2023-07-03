@@ -106,10 +106,8 @@ NSAttributedString *buildRouteSegmentsLength(NSArray<MWMRoutePoint *> *points) {
   for (int i = 1; i < [points count]; i++) {
     MWMRoutePoint* segmentStart = points[i-1];
     MWMRoutePoint* segmentEnd = points[i];
-    m2::PointD startPoint(mercator::LonToX(segmentStart.longitude), mercator::LatToY(segmentStart.latitude));
-    platform::Distance distance;
-    double azimut;
-    frm.GetDistanceAndAzimut(startPoint, segmentEnd.latitude, segmentEnd.longitude, 0, distance, azimut);
+    auto const distance = platform::Distance::CreateFormatted(
+      ms::DistanceOnEarth(segmentStart.latitude, segmentStart.longitude, segmentEnd.latitude, segmentEnd.longitude));
 
     // Append point marker.
     if (i==1) {

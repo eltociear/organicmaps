@@ -51,7 +51,6 @@ RouterResultCode HelicopterRouter::CalculateRoute(Checkpoints const & checkpoint
                                                       RouterDelegate const & delegate, Route & route)
 {
   vector<m2::PointD> const & points = checkpoints.GetPoints();
-  geometry::Altitude const mockAltitude = 0;
   vector<RouteSegment> routeSegments;
   vector<double> times;
   size_t const count = points.size();
@@ -60,10 +59,15 @@ RouterResultCode HelicopterRouter::CalculateRoute(Checkpoints const & checkpoint
   times.reserve(count*2-1);
   Segment const segment(kFakeNumMwmId, 0, 0, false);
 
+  auto const ToPointWA = [](m2::PointD const & p)
+  {
+    return geometry::PointWithAltitude(p, 0 /* altitude */);
+  };
+
   for (size_t i = 0; i < count; ++i)
   {
     turns::TurnItem turn(i, turns::PedestrianDirection::None);
-    geometry::PointWithAltitude const junction(points[i], mockAltitude);
+    geometry::PointWithAltitude const junction = ToPointWA(points[i]);
     RouteSegment::RoadNameInfo const roadNameInfo;
 
     auto routeSegment = RouteSegment(segment, turn, junction, roadNameInfo);
@@ -81,11 +85,6 @@ RouterResultCode HelicopterRouter::CalculateRoute(Checkpoints const & checkpoint
 
   FillSegmentInfo(times, routeSegments);
   route.SetRouteSegments(std::move(routeSegments));
-
-  auto const ToPointWA = [](m2::PointD const & p)
-  {
-    return geometry::PointWithAltitude(p, 0 /* altitude */);
-  };
 
   vector<Route::SubrouteAttrs> subroutes;
   for(size_t i = 1; i < count; ++i)

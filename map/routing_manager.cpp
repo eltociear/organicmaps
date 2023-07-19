@@ -221,7 +221,7 @@ RoadWarningMarkType GetRoadType(RoutingOptions::Road road)
 }
 
 drape_ptr<df::Subroute> CreateDrapeSubroute(vector<RouteSegment> const & segments, m2::PointD const & startPt,
-                                            double baseDistance, double baseDepth, bool isTransit)
+                                            double baseDistance, double baseDepth, bool isTransit, bool isHelicopter)
 {
   auto subroute = make_unique_dp<df::Subroute>();
   subroute->m_baseDistance = baseDistance;
@@ -247,6 +247,15 @@ drape_ptr<df::Subroute> CreateDrapeSubroute(vector<RouteSegment> const & segment
   {
     LOG(LWARNING, ("Invalid subroute. Points number =", points.size()));
     return nullptr;
+  }
+
+  if (isHelicopter)
+  {
+    auto const subrouteLen = segments.back().GetDistFromBeginningMerc() - baseDistance;
+    subroute->m_headFakeDistance = -kBias;
+    subroute->m_tailFakeDistance = subrouteLen + kBias;
+    subroute->m_polyline = m2::PolylineD(points);
+    return subroute;
   }
 
   // We support visualization of fake edges only in the head and in the tail of subroute.
@@ -658,6 +667,7 @@ bool RoutingManager::InsertRoute(Route const & route)
   RoadWarningsCollection roadWarnings;
 
   bool const isTransitRoute = (m_currentRouterType == RouterType::Transit);
+  bool const isHelicopterRoute = (m_currentRouterType == RouterType::Helicopter);
   shared_ptr<TransitRouteDisplay> transitRouteDisplay;
   if (isTransitRoute)
   {
@@ -676,7 +686,7 @@ bool RoutingManager::InsertRoute(Route const & route)
     auto const startPt = route.GetSubrouteAttrs(subrouteIndex).GetStart().GetPoint();
     auto subroute = CreateDrapeSubroute(segments, startPt, distance,
                                         static_cast<double>(subroutesCount - subrouteIndex - 1),
-                                        isTransitRoute);
+                                        isTransitRoute, isHelicopterRoute);
     if (!subroute)
       continue;
     distance = segments.back().GetDistFromBeginningMerc();
@@ -713,9 +723,6 @@ bool RoutingManager::InsertRoute(Route const & route)
       case RouterType::Helicopter:
         {
           subroute->m_routeType = df::RouteType::Helicopter;
-          subroute->m_headFakeDistance = -1.0f;
-          //Assuming that Helicopter line is shorter than 90°. Otherwise line tail would have a gray color.
-          subroute->m_tailFakeDistance = 90.0f;
           subroute->AddStyle(df::SubrouteStyle(df::kRouteHelicopter, df::RoutePattern(16.0, 2.0)));
           break;
         }
@@ -875,7 +882,7 @@ void RoutingManager::ContinueRouteToPoint(RouteMarkData && markData)
 
   markData.m_intermediateIndex = routePoints.GetRoutePointsCount();
   markData.m_isVisible = !markData.m_isMyPosition;
-  routePoints.AddRoutePoint(move(markData));
+  routePoints.AddRoutePoint(std::move(markData));
   ReorderIntermediatePoints();
 }
 

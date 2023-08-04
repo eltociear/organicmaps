@@ -146,10 +146,6 @@ final class BaseRoutePreviewStatus: SolidTouchView {
         result.append(elevation)
       }
       
-      if let routeSegmentsLength = info.routeSegmentsLength?.mutableCopy() as? NSMutableAttributedString {
-        result.append(NSAttributedString(string: "\n"))
-        result.append(routeSegmentsLength)
-      }
       resultLabel.attributedText = result
     }
   }

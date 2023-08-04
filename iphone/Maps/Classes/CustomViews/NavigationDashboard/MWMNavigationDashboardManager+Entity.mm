@@ -100,38 +100,30 @@ NSAttributedString *estimate(NSTimeInterval time, NSString *distance, NSString *
   return result;
 }
 
-NSAttributedString *buildRouteSegmentsLength(NSArray<MWMRoutePoint *> *points) {
-  auto result = [[NSMutableAttributedString alloc] initWithString:@""];
-  auto &frm = GetFramework();
-  for (int i = 1; i < [points count]; i++) {
-    MWMRoutePoint* segmentStart = points[i-1];
-    MWMRoutePoint* segmentEnd = points[i];
+NSArray<MWMRouterTransitStepInfo *> *buildRouteTransitSteps(NSArray<MWMRoutePoint *> *points) {
+  NSMutableArray<MWMRouterTransitStepInfo *> *steps = [NSMutableArray arrayWithCapacity:[points count]*2-1];
+  auto const numPoints = [points count];
+  for (int i = 0; i < numPoints-1; i++) {
+    MWMRoutePoint* segmentStart = points[i];
+    MWMRoutePoint* segmentEnd = points[i+1];
     auto const distance = platform::Distance::CreateFormatted(
       ms::DistanceOnEarth(segmentStart.latitude, segmentStart.longitude, segmentEnd.latitude, segmentEnd.longitude));
 
-    // Append point marker.
-    if (i==1) {
-      [result appendAttributedString:[[NSAttributedString alloc] initWithString:@"🔵"]];
+    MWMRouterTransitStepInfo* segmentInfo = [[MWMRouterTransitStepInfo alloc] init];
+    segmentInfo.type = MWMRouterTransitTypeHelicopter;
+    segmentInfo.distance = @(distance.GetDistanceString().c_str());
+    segmentInfo.distanceUnits = @(distance.GetUnitsString().c_str());
+    steps[i*2] = segmentInfo;
+
+    if (i < numPoints-2) {
+      MWMRouterTransitStepInfo* stopInfo = [[MWMRouterTransitStepInfo alloc] init];
+      stopInfo.type = MWMRouterTransitTypeIntermediatePoint;
+      stopInfo.intermediateIndex = i;
+      steps[i*2+1] = stopInfo;
     }
-    else {
-      uint32_t ch = (i<22) ? (0x2460 + i - 2) : 0x25EF; // Calculate code for symbols: ①, ②, ③, etc. Use '◯' if more then 20 intermediate points
-      ch = OSSwapHostToLittleInt32(ch); // To make it byte-order safe
-      auto markerStr = [[NSString alloc] initWithBytes:&ch length:4 encoding:NSUTF32LittleEndianStringEncoding];
-      auto attrs = @{
-        NSFontAttributeName: [UIFont regular18]
-      };
-
-      [result appendAttributedString:[[NSAttributedString alloc] initWithString:markerStr attributes:attrs]];
-    }
-
-    // Append segment length.
-    auto segmentLengthStr = [NSString stringWithFormat:@" %@ %@ ", @(distance.GetDistanceString().c_str()),
-                             @(distance.GetUnitsString().c_str())];
-
-    [result appendAttributedString:[[NSAttributedString alloc] initWithString: segmentLengthStr]];
   }
-  [result appendAttributedString: [[NSAttributedString alloc] initWithString: @"🏁"] ];
-  return result;
+
+  return steps;
 }
 }  // namespace
 
@@ -139,7 +131,6 @@ NSAttributedString *buildRouteSegmentsLength(NSArray<MWMRoutePoint *> *points) {
 
 @property(copy, nonatomic, readwrite) NSArray<MWMRouterTransitStepInfo *> *transitSteps;
 @property(copy, nonatomic, readwrite) NSAttributedString *estimate;
-@property(copy, nonatomic, readwrite) NSAttributedString *routeSegmentsLength;
 @property(copy, nonatomic, readwrite) NSString *distanceToTurn;
 @property(copy, nonatomic, readwrite) NSString *streetName;
 @property(copy, nonatomic, readwrite) NSString *targetDistance;
@@ -217,9 +208,9 @@ NSAttributedString *buildRouteSegmentsLength(NSArray<MWMRoutePoint *> *points) {
     entity.estimate = estimate(entity.timeToTarget, entity.targetDistance, entity.targetUnits,
                                self.etaAttributes, self.etaSecondaryAttributes, NO, showEta);
     if (type == MWMRouterTypeHelicopter && [points count] > 2)
-      entity.routeSegmentsLength = buildRouteSegmentsLength(points);
+      entity.transitSteps = buildRouteTransitSteps(points);
     else
-      entity.routeSegmentsLength = nil;
+      entity.transitSteps = [[NSArray alloc] init];
 
     if (type == MWMRouterTypePedestrian) {
       entity.turnImage = image(info.m_pedestrianTurn);

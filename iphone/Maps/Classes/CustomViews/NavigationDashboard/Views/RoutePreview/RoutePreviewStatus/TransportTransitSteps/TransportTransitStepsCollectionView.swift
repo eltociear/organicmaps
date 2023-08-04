@@ -20,7 +20,8 @@ final class TransportTransitStepsCollectionView: UICollectionView {
   override func awakeFromNib() {
     super.awakeFromNib()
     dataSource = self
-    [TransportTransitIntermediatePoint.self, TransportTransitPedestrian.self, TransportTransitTrain.self].forEach {
+    [TransportTransitIntermediatePoint.self, TransportTransitPedestrian.self,
+     TransportTransitTrain.self, TransportHelicopter.self].forEach {
       register(cellClass: $0)
     }
   }
@@ -34,6 +35,7 @@ final class TransportTransitStepsCollectionView: UICollectionView {
     case .subway: fallthrough
     case .lightRail: fallthrough
     case .monorail: return TransportTransitTrain.self
+    case .helicopter: return TransportHelicopter.self
     }
   }
 

@@ -82,7 +82,7 @@ NSString *const kNavigationControlViewXibName = @"NavigationControlView";
   if (!entity.isValid)
     return;
   [_navigationInfoView onNavigationInfoUpdated:entity];
-  if ([MWMRouter type] == MWMRouterTypePublicTransport)
+  if ([MWMRouter type] == MWMRouterTypePublicTransport || [MWMRouter type] == MWMRouterTypeHelicopter)
     [_transportRoutePreviewStatus onNavigationInfoUpdated:entity];
   else
     [_baseRoutePreviewStatus onNavigationInfoUpdated:entity];
@@ -177,7 +177,7 @@ NSString *const kNavigationControlViewXibName = @"NavigationControlView";
   [self updateGoButtonTitle];
   auto const isTransport = ([MWMRouter type] == MWMRouterTypePublicTransport);
   auto const isHelicopter = ([MWMRouter type] == MWMRouterTypeHelicopter);
-  if (isTransport)
+  if (isTransport || isHelicopter)
     [self.transportRoutePreviewStatus showReady];
   else
     [self.baseRoutePreviewStatus showReady];

@@ -412,6 +412,7 @@ void BaseApplyFeature::ExtractCaptionParams(CaptionDefProto const * primaryProto
   titleDecl.m_primaryTextFont = decl;
   titleDecl.m_primaryOffset = GetOffset(primaryProto->offset_x(), primaryProto->offset_y());
   titleDecl.m_primaryOptional = primaryProto->is_optional();
+  // Secondary captions are optional always.
   titleDecl.m_secondaryOptional = true;
 
   if (secondaryProto)
@@ -421,7 +422,6 @@ void BaseApplyFeature::ExtractCaptionParams(CaptionDefProto const * primaryProto
 
     titleDecl.m_secondaryText = m_captions.GetAuxText();
     titleDecl.m_secondaryTextFont = auxDecl;
-    titleDecl.m_secondaryOptional = secondaryProto->is_optional();
   }
 }
 
@@ -541,14 +541,10 @@ void ApplyPointFeature::Finish(ref_ptr<dp::TextureManager> texMng)
 
   for (auto textParams : m_textParams)
   {
-    if (m_captions.IsHouseNumberInMainText())
+    if (specialDisplacementMode && !m_captions.IsHouseNumberInMainText() && !m_captions.IsHouseNumberInAuxText())
     {
-      textParams.m_specialDisplacement = SpecialDisplacement::HouseNumber;
-    }
-    else
-    {
-      textParams.m_specialDisplacement = specialDisplacementMode ? SpecialDisplacement::SpecialMode
-                                                                 : SpecialDisplacement::None;
+      textParams.m_specialDisplacement = SpecialDisplacement::SpecialMode;
+      textParams.m_specialPriority = specialModePriority;
     }
 
     /// @todo Hardcoded styles-bug patch. The patch is ok, but probably should enhance (or fire assert) styles?
@@ -559,7 +555,6 @@ void ApplyPointFeature::Finish(ref_ptr<dp::TextureManager> texMng)
       textParams.m_titleDecl.m_primaryOffset = GetOffset(0, 1);
     }
 
-    textParams.m_specialPriority = specialModePriority;
     textParams.m_startOverlayRank = hasPOI ? dp::OverlayRank1 : dp::OverlayRank0;
     m_insertShape(make_unique_dp<TextShape>(m2::PointD(m_centerPoint), textParams, m_tileKey, symbolSize,
                                             m2::PointF(0.0f, 0.0f) /* symbolOffset */,

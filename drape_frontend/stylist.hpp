@@ -35,6 +35,7 @@ struct CaptionDescription
   std::string const & GetAuxText() const;
   bool IsNameExists() const;
   bool IsHouseNumberInMainText() const { return m_isHouseNumberInMainText; }
+  bool IsHouseNumberInAuxText() const { return m_isHouseNumberInAuxText; }
 
 private:
   // Clear aux name on high zoom and clear long main name on low zoom.
@@ -46,6 +47,7 @@ private:
   std::string m_auxText;
   std::string m_houseNumber;
   bool m_isHouseNumberInMainText = false;
+  bool m_isHouseNumberInAuxText = false;
 };
 
 class Stylist

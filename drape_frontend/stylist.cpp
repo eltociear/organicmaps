@@ -318,20 +318,16 @@ void CaptionDescription::ProcessMainTextType(drule::text_type_t const & mainText
   if (m_houseNumber.empty())
     return;
 
-  if (mainTextType == drule::text_type_housenumber)
+  if (mainTextType == drule::text_type_housenumber || mainTextType == drule::text_type_name &&
+      (m_mainText.empty() || m_houseNumber.find(m_mainText) != std::string::npos))
   {
-    /// @todo this code path is never used, probably need to have e.g. "text: housenumber" in styles for it.
     m_mainText.swap(m_houseNumber);
-    m_houseNumber.clear();
     m_isHouseNumberInMainText = true;
   }
-  else if (mainTextType == drule::text_type_name)
+  else if (m_auxText.empty() || m_houseNumber.find(m_auxText) != std::string::npos)
   {
-    if (m_mainText.empty() || m_houseNumber.find(m_mainText) != std::string::npos)
-    {
-      m_houseNumber.swap(m_mainText);
-      m_isHouseNumberInMainText = true;
-    }
+    m_auxText.swap(m_houseNumber);
+    m_isHouseNumberInAuxText = true;
   }
 }
 
@@ -434,6 +430,18 @@ bool InitStylist(FeatureType & f, int8_t deviceLang, int const zoomLevel, bool b
 
   CaptionDescription & descr = s.GetCaptionDescriptionImpl();
   descr.Init(f, deviceLang, zoomLevel, geomType, aggregator.m_mainTextType, aggregator.m_auxCaptionFound);
+  // We want minimal displacement priority for house numbers and it
+  // can not be set via drules because usually house numbers are just
+  // an attribute of a feature with some other types.
+  if (descr.IsHouseNumberInMainText() || descr.IsHouseNumberInAuxText())
+  {
+    for (auto & r : aggregator.m_rules)
+    {
+      if (descr.IsHouseNumberInMainText() && r.m_rule->GetCaption(0) != nullptr ||
+          descr.IsHouseNumberInAuxText() && r.m_rule->GetCaption(1) != nullptr)
+        r.m_depth = -drule::kOverlaysMaxPriority;
+    }
+  }
 
   aggregator.AggregateStyleFlags(keys, descr.IsNameExists());
 

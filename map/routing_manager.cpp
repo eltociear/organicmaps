@@ -1050,8 +1050,9 @@ void RoutingManager::BuildRoute(uint32_t timeoutSec)
   // Show preview.
   m2::RectD rect = ShowPreviewSegments(routePoints);
   rect.Scale(kRouteScaleMultiplier);
-  m_drapeEngine.SafeCall(&df::DrapeEngine::SetModelViewRect, rect, true /* applyRotation */,
-                         -1 /* zoom */, true /* isAnim */, true /* useVisibleViewport */);
+  //@Sergiy Kozyr: Removed annoying zoom in route planning mode
+  //m_drapeEngine.SafeCall(&df::DrapeEngine::SetModelViewRect, rect, true /* applyRotation */,
+  //                       -1 /* zoom */, true /* isAnim */, true /* useVisibleViewport */);
 
   m_routingSession.ClearPositionAccumulator();
   m_routingSession.SetUserCurrentPosition(routePoints.front().m_position);

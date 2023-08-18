@@ -2043,8 +2043,13 @@ void Framework::DeactivateHotelSearchMark()
 void Framework::OnTapEvent(place_page::BuildInfo const & buildInfo)
 {
   auto placePageInfo = BuildPlacePageInfo(buildInfo);
+  bool isRoutePoint = placePageInfo.has_value() && placePageInfo->IsRoutePoint();
 
-  if (m_routingManager.IsRoutingActive() && m_routingManager.GetCurrentRouterType() == routing::RouterType::Helicopter) {
+  if (m_routingManager.IsRoutingActive() \
+      && m_routingManager.GetCurrentRouterType() == routing::RouterType::Helicopter \
+      && !buildInfo.m_isLongTap \
+      && !isRoutePoint)
+  {
     // Continue route to the point
     RouteMarkData data;
     data.m_title = placePageInfo ? placePageInfo->GetTitle() : std::string();

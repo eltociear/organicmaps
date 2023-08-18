@@ -56,9 +56,11 @@ final class RoutingBottomMenuController implements View.OnClickListener
   @NonNull
   private final ImageView mAltitudeChart;
   @NonNull
-  private final TextView mAltitudeDifference;
+  private final TextView mTime;
   @NonNull
-  private final View mNumbersFrame;
+  private final TextView mAltitudeDifference;
+  @Nullable
+  private final TextView mArrival;
   @NonNull
   private final View mActionFrame;
   @NonNull
@@ -82,12 +84,13 @@ final class RoutingBottomMenuController implements View.OnClickListener
     TextView error = (TextView) getViewById(activity, frame, R.id.error);
     Button start = (Button) getViewById(activity, frame, R.id.start);
     ImageView altitudeChart = (ImageView) getViewById(activity, frame, R.id.altitude_chart);
+    TextView time = (TextView) getViewById(activity, frame, R.id.time);
     TextView altitudeDifference = (TextView) getViewById(activity, frame, R.id.altitude_difference);
-    View numbersFrame = getViewById(activity, frame, R.id.numbers);
+    TextView arrival = (TextView) getViewById(activity, frame, R.id.arrival);
     View actionFrame = getViewById(activity, frame, R.id.routing_action_frame);
 
-    return new RoutingBottomMenuController(activity, altitudeChartFrame, transitFrame, error, start, altitudeChart, altitudeDifference,
-                                           numbersFrame, actionFrame, listener);
+    return new RoutingBottomMenuController(activity, altitudeChartFrame, transitFrame, error, start, altitudeChart,
+                                           time, altitudeDifference, arrival, actionFrame, listener);
   }
 
   @NonNull
@@ -104,8 +107,9 @@ final class RoutingBottomMenuController implements View.OnClickListener
                                       @NonNull TextView error,
                                       @NonNull Button start,
                                       @NonNull ImageView altitudeChart,
+                                      @NonNull TextView time,
                                       @NonNull TextView altitudeDifference,
-                                      @NonNull View numbersFrame,
+                                      @Nullable TextView arrival,
                                       @NonNull View actionFrame,
                                       @Nullable RoutingBottomMenuListener listener)
   {
@@ -115,8 +119,9 @@ final class RoutingBottomMenuController implements View.OnClickListener
     mError = error;
     mStart = start;
     mAltitudeChart = altitudeChart;
+    mTime = time;
     mAltitudeDifference = altitudeDifference;
-    mNumbersFrame = numbersFrame;
+    mArrival = arrival;
     mActionFrame = actionFrame;
     mActionMessage = actionFrame.findViewById(R.id.tv__message);
     mActionButton = actionFrame.findViewById(R.id.btn__my_position_use);
@@ -150,7 +155,7 @@ final class RoutingBottomMenuController implements View.OnClickListener
   @SuppressLint("SetTextI18n")
   void showTransitInfo(@NonNull TransitRouteInfo info)
   {
-    UiUtils.hide(mError, mAltitudeChartFrame, mActionFrame, mAltitudeChartFrame);
+    UiUtils.hide(mError, mAltitudeChartFrame, mActionFrame);
     showStartButton(false);
     UiUtils.show(mTransitFrame);
     RecyclerView rv = mTransitFrame.findViewById(R.id.transit_recycler_view);
@@ -277,19 +282,18 @@ final class RoutingBottomMenuController implements View.OnClickListener
     final RoutingInfo rinfo = RoutingController.get().getCachedRoutingInfo();
     if (rinfo == null)
     {
-      UiUtils.hide(mNumbersFrame);
+      UiUtils.hide(mTime);
+      UiUtils.hide(mAltitudeDifference);
       return;
     }
 
     Spanned spanned = makeSpannedRoutingDetails(mContext, rinfo);
-    TextView numbersTime = mNumbersFrame.findViewById(R.id.time);
-    numbersTime.setText(spanned);
+    mTime.setText(spanned);
 
-    TextView numbersArrival = mNumbersFrame.findViewById(R.id.arrival);
-    if (numbersArrival != null)
+    if (mArrival != null)
     {
       String arrivalTime = RoutingController.formatArrivalTime(rinfo.totalTimeInSeconds);
-      numbersArrival.setText(arrivalTime);
+      mArrival.setText(arrivalTime);
     }
   }
 

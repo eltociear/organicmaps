@@ -12506,6 +12506,14 @@ cont {
 cont {
   name: "boundary-protected_area"
   element {
+    scale: 10
+    symbol {
+      name: "nparkf-outline-s"
+      priority: 6700
+      min_distance: 20
+    }
+  }
+  element {
     scale: 11
     symbol {
       name: "nparkf-outline-s"
@@ -12847,6 +12855,14 @@ cont {
 cont {
   name: "boundary-protected_area-2"
   element {
+    scale: 10
+    symbol {
+      name: "nparkf-outline-s"
+      priority: 6700
+      min_distance: 20
+    }
+  }
+  element {
     scale: 11
     symbol {
       name: "nparkf-outline-s"
@@ -12995,6 +13011,14 @@ cont {
 }
 cont {
   name: "boundary-protected_area-3"
+  element {
+    scale: 10
+    symbol {
+      name: "nparkf-outline-s"
+      priority: 6700
+      min_distance: 20
+    }
+  }
   element {
     scale: 11
     symbol {
@@ -13145,6 +13169,14 @@ cont {
 cont {
   name: "boundary-protected_area-4"
   element {
+    scale: 10
+    symbol {
+      name: "nparkf-outline-s"
+      priority: 6700
+      min_distance: 20
+    }
+  }
+  element {
     scale: 11
     symbol {
       name: "nparkf-outline-s"
@@ -13294,6 +13326,14 @@ cont {
 cont {
   name: "boundary-protected_area-5"
   element {
+    scale: 10
+    symbol {
+      name: "nparkf-outline-s"
+      priority: 6700
+      min_distance: 20
+    }
+  }
+  element {
     scale: 11
     symbol {
       name: "nparkf-outline-s"
@@ -13442,6 +13482,14 @@ cont {
 }
 cont {
   name: "boundary-protected_area-6"
+  element {
+    scale: 10
+    symbol {
+      name: "nparkf-outline-s"
+      priority: 6700
+      min_distance: 20
+    }
+  }
   element {
     scale: 11
     symbol {
@@ -27746,6 +27794,15 @@ cont {
 cont {
   name: "highway-service"
   element {
+    scale: 13
+    lines {
+      width: 1.2
+      color: 16777215
+      priority: 190
+      cap: BUTTCAP
+    }
+  }
+  element {
     scale: 14
     lines {
       width: 1.2
@@ -27831,6 +27888,15 @@ cont {
 cont {
   name: "highway-service-area"
   element {
+    scale: 13
+    lines {
+      width: 1.2
+      color: 16777215
+      priority: 190
+      cap: BUTTCAP
+    }
+  }
+  element {
     scale: 14
     lines {
       width: 1.2
@@ -27915,6 +27981,15 @@ cont {
 }
 cont {
   name: "highway-service-bridge"
+  element {
+    scale: 13
+    lines {
+      width: 1.2
+      color: 16777215
+      priority: 190
+      cap: BUTTCAP
+    }
+  }
   element {
     scale: 14
     lines {
@@ -28301,6 +28376,15 @@ cont {
 }
 cont {
   name: "highway-service-tunnel"
+  element {
+    scale: 13
+    lines {
+      width: 1.2
+      color: 16777215
+      priority: 190
+      cap: BUTTCAP
+    }
+  }
   element {
     scale: 14
     lines {
@@ -46644,6 +46728,19 @@ cont {
 cont {
   name: "natural-cliff"
   element {
+    scale: 12
+    lines {
+      width: 2.0
+      color: 1720473638
+      dashdot {
+        dd: 1.4
+        dd: 1.4
+      }
+      priority: 100
+      cap: BUTTCAP
+    }
+  }
+  element {
     scale: 13
     lines {
       width: 2.0
@@ -47055,6 +47152,19 @@ cont {
 }
 cont {
   name: "natural-earth_bank"
+  element {
+    scale: 12
+    lines {
+      width: 2.0
+      color: 1720473638
+      dashdot {
+        dd: 1.4
+        dd: 1.4
+      }
+      priority: 100
+      cap: BUTTCAP
+    }
+  }
   element {
     scale: 13
     lines {
@@ -58732,6 +58842,18 @@ cont {
 cont {
   name: "railway-abandoned"
   element {
+    scale: 13
+    lines {
+      width: 1.6
+      color: 9868678
+      dashdot {
+        dd: 6.3
+        dd: 6.3
+      }
+      priority: 160
+    }
+  }
+  element {
     scale: 14
     lines {
       width: 1.6
@@ -58806,6 +58928,30 @@ cont {
 }
 cont {
   name: "railway-abandoned-bridge"
+  element {
+    scale: 13
+    lines {
+      width: 7.6
+      color: 8421504
+      priority: 140
+      cap: BUTTCAP
+    }
+    lines {
+      width: 6.4
+      color: 15592411
+      priority: 150
+      cap: BUTTCAP
+    }
+    lines {
+      width: 1.6
+      color: 9868678
+      dashdot {
+        dd: 6.3
+        dd: 6.3
+      }
+      priority: 160
+    }
+  }
   element {
     scale: 14
     lines {
@@ -58954,6 +59100,18 @@ cont {
 cont {
   name: "railway-abandoned-tunnel"
   element {
+    scale: 13
+    lines {
+      width: 1.6
+      color: 9868678
+      dashdot {
+        dd: 6.3
+        dd: 6.3
+      }
+      priority: 160
+    }
+  }
+  element {
     scale: 14
     lines {
       width: 1.6
@@ -59028,6 +59186,19 @@ cont {
 }
 cont {
   name: "railway-construction"
+  element {
+    scale: 13
+    lines {
+      width: 1.0
+      color: 9868678
+      dashdot {
+        dd: 1.8
+        dd: 5.4
+      }
+      priority: 160
+      cap: BUTTCAP
+    }
+  }
   element {
     scale: 14
     lines {
@@ -59105,6 +59276,18 @@ cont {
 }
 cont {
   name: "railway-disused"
+  element {
+    scale: 13
+    lines {
+      width: 1.0
+      color: 9868678
+      dashdot {
+        dd: 1.8
+        dd: 5.4
+      }
+      priority: 160
+    }
+  }
   element {
     scale: 14
     lines {
@@ -60187,6 +60370,19 @@ cont {
 cont {
   name: "railway-preserved"
   element {
+    scale: 13
+    lines {
+      width: 1.6
+      color: 9868678
+      dashdot {
+        dd: 6.3
+        dd: 6.3
+      }
+      priority: 160
+      cap: BUTTCAP
+    }
+  }
+  element {
     scale: 14
     lines {
       width: 1.6
@@ -60263,6 +60459,25 @@ cont {
 }
 cont {
   name: "railway-preserved-bridge"
+  element {
+    scale: 13
+    lines {
+      width: 5.6
+      color: 15592411
+      priority: 150
+      cap: BUTTCAP
+    }
+    lines {
+      width: 1.6
+      color: 9868678
+      dashdot {
+        dd: 6.3
+        dd: 6.3
+      }
+      priority: 160
+      cap: BUTTCAP
+    }
+  }
   element {
     scale: 14
     lines {
@@ -60400,6 +60615,19 @@ cont {
 }
 cont {
   name: "railway-preserved-tunnel"
+  element {
+    scale: 13
+    lines {
+      width: 1.6
+      color: 9868678
+      dashdot {
+        dd: 6.3
+        dd: 6.3
+      }
+      priority: 160
+      cap: BUTTCAP
+    }
+  }
   element {
     scale: 14
     lines {
@@ -62330,46 +62558,6 @@ cont {
 cont {
   name: "railway-rail-service"
   element {
-    scale: 10
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 12
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 13
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 14
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
     scale: 15
     lines {
       width: 1.3
@@ -62439,106 +62627,6 @@ cont {
 }
 cont {
   name: "railway-rail-service-bridge"
-  element {
-    scale: 10
-    lines {
-      width: 7.0
-      color: 8421504
-      priority: 140
-      cap: BUTTCAP
-    }
-    lines {
-      width: 5.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 7.0
-      color: 8421504
-      priority: 140
-      cap: BUTTCAP
-    }
-    lines {
-      width: 5.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 12
-    lines {
-      width: 7.0
-      color: 8421504
-      priority: 140
-      cap: BUTTCAP
-    }
-    lines {
-      width: 5.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 13
-    lines {
-      width: 7.0
-      color: 8421504
-      priority: 140
-      cap: BUTTCAP
-    }
-    lines {
-      width: 5.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 14
-    lines {
-      width: 7.0
-      color: 8421504
-      priority: 140
-      cap: BUTTCAP
-    }
-    lines {
-      width: 5.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
   element {
     scale: 15
     lines {
@@ -62670,96 +62758,6 @@ cont {
 cont {
   name: "railway-rail-service-tunnel"
   element {
-    scale: 10
-    lines {
-      width: 3.3
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 3.3
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 12
-    lines {
-      width: 3.3
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 13
-    lines {
-      width: 3.3
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
-    scale: 14
-    lines {
-      width: 3.3
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.3
-      color: 11710882
-      priority: 210
-    }
-  }
-  element {
     scale: 15
     lines {
       width: 3.3
@@ -62880,42 +62878,6 @@ cont {
 cont {
   name: "railway-rail-spur"
   element {
-    scale: 10
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 12
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 13
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
     scale: 14
     lines {
       width: 1.2
@@ -62995,66 +62957,6 @@ cont {
 }
 cont {
   name: "railway-rail-spur-bridge"
-  element {
-    scale: 10
-    lines {
-      width: 4.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 4.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 12
-    lines {
-      width: 4.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 13
-    lines {
-      width: 4.8
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
   element {
     scale: 14
     lines {
@@ -63195,82 +63097,6 @@ cont {
 }
 cont {
   name: "railway-rail-spur-tunnel"
-  element {
-    scale: 10
-    lines {
-      width: 3.2
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 3.2
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 12
-    lines {
-      width: 3.2
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 13
-    lines {
-      width: 3.2
-      color: 8421504
-      dashdot {
-        dd: 5.0
-        dd: 5.0
-      }
-      priority: 209
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.2
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
   element {
     scale: 14
     lines {
@@ -64254,24 +64080,6 @@ cont {
 cont {
   name: "railway-rail-utility"
   element {
-    scale: 10
-    lines {
-      width: 1.0
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 1.0
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
     scale: 12
     lines {
       width: 1.0
@@ -64369,36 +64177,6 @@ cont {
 }
 cont {
   name: "railway-rail-utility-bridge"
-  element {
-    scale: 10
-    lines {
-      width: 4.4
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.0
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 4.4
-      color: 15592411
-      priority: 150
-      cap: BUTTCAP
-    }
-    lines {
-      width: 1.0
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
   element {
     scale: 12
     lines {
@@ -64569,24 +64347,6 @@ cont {
 }
 cont {
   name: "railway-rail-utility-tunnel"
-  element {
-    scale: 10
-    lines {
-      width: 1.0
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
-  element {
-    scale: 11
-    lines {
-      width: 1.0
-      color: 11710882
-      priority: 210
-      cap: BUTTCAP
-    }
-  }
   element {
     scale: 12
     lines {
@@ -104142,6 +103902,23 @@ cont {
 cont {
   name: "tourism-caravan_site"
   element {
+    scale: 14
+    symbol {
+      name: "caravan_site-m"
+      priority: 3800
+      min_distance: 30
+    }
+    caption {
+      primary {
+        height: 11
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -6200
+    }
+  }
+  element {
     scale: 15
     symbol {
       name: "caravan_site-m"
@@ -105446,6 +105223,57 @@ cont {
 }
 cont {
   name: "tourism-viewpoint"
+  element {
+    scale: 11
+    symbol {
+      name: "viewpoint-s"
+      priority: 4950
+      min_distance: 8
+    }
+    caption {
+      primary {
+        height: 10
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -5050
+    }
+  }
+  element {
+    scale: 12
+    symbol {
+      name: "viewpoint-s"
+      priority: 4950
+      min_distance: 8
+    }
+    caption {
+      primary {
+        height: 10
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -5050
+    }
+  }
+  element {
+    scale: 13
+    symbol {
+      name: "viewpoint-s"
+      priority: 4950
+      min_distance: 8
+    }
+    caption {
+      primary {
+        height: 10
+        color: 4473924
+        offset_y: 1
+        is_optional: true
+      }
+      priority: -5050
+    }
+  }
   element {
     scale: 14
     symbol {

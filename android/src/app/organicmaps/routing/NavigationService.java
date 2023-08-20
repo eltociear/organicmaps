@@ -2,23 +2,24 @@ package app.organicmaps.routing;
 
 import static androidx.core.app.NotificationCompat.Builder;
 
-import android.app.ActivityManager;
+import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.location.Location;
-import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.text.TextUtils;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import app.organicmaps.Framework;
@@ -38,13 +39,10 @@ public class NavigationService extends Service
   public static final String PACKAGE_NAME = NavigationService.class.getPackage().getName();
   public static final String PACKAGE_NAME_WITH_SERVICE_NAME = PACKAGE_NAME + "." +
       StringUtils.toLowerCase(NavigationService.class.getSimpleName());
-  private static final String EXTRA_STOP_SERVICE = PACKAGE_NAME_WITH_SERVICE_NAME + "finish";
 
   private static final String CHANNEL_ID = "LOCATION_CHANNEL";
   private static final int NOTIFICATION_ID = 12345678;
 
-  @NonNull
-  private final IBinder mBinder = new LocalBinder();
   @SuppressWarnings("NotNullFieldNotInitialized")
   @NonNull
   private String mNavigationText = "";
@@ -56,35 +54,24 @@ public class NavigationService extends Service
   @NonNull
   private NotificationManager mNotificationManager;
 
-  private boolean mChangingConfiguration = false;
-
   @NonNull
   private final LocationListener mLocationListener = new LocationListener()
   {
     @Override
     public void onLocationUpdated(Location location)
     {
-      Logger.d(TAG, "onLocationUpdated()");
+      Logger.d(TAG);
       RoutingInfo routingInfo = Framework.nativeGetRouteFollowingInfo();
-      if (serviceIsRunningInForeground(getApplicationContext()))
-      {
-        mNotificationManager.notify(NOTIFICATION_ID, getNotification());
-        updateNotification(routingInfo);
-      }
+      mNotificationManager.notify(NOTIFICATION_ID, getNotification());
+      updateNotification(routingInfo);
     }
   };
-
-  public class LocalBinder extends Binder
-  {
-    NavigationService getService()
-    {
-      return NavigationService.this;
-    }
-  }
 
   @Override
   public void onCreate()
   {
+    Logger.i(TAG);
+
     mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     mRemoteViews = new RemoteViews(getPackageName(), R.layout.navigation_notification);
 
@@ -94,8 +81,12 @@ public class NavigationService extends Service
       CharSequence name = getString(R.string.app_name);
       // Create the channel for the notification
       NotificationChannel mChannel =
-          new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
-
+          new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW);
+      // Make things less annoying.
+      mChannel.enableVibration(false);
+      mChannel.enableLights(false);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        mChannel.setAllowBubbles(false);
       mNotificationManager.createNotificationChannel(mChannel);
     }
   }
@@ -103,8 +94,10 @@ public class NavigationService extends Service
   @Override
   public void onDestroy()
   {
+    Logger.i(TAG);
     super.onDestroy();
-    removeLocationUpdates();
+    LocationHelper.INSTANCE.removeListener(mLocationListener);
+    TtsPlayer.INSTANCE.stop();
   }
 
   @Override
@@ -117,88 +110,57 @@ public class NavigationService extends Service
   @Override
   public int onStartCommand(Intent intent, int flags, int startId)
   {
-    Logger.i(TAG, "Service started");
+    Logger.i(TAG);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+      startForegroundS(NOTIFICATION_ID, getNotification());
+    else
+      startForeground(NOTIFICATION_ID, getNotification());
+
     LocationHelper.INSTANCE.addListener(mLocationListener);
-    boolean finishedFromNotification = intent.getBooleanExtra(EXTRA_STOP_SERVICE,
-                                                              false);
-    // We got here because the user decided to remove location updates from the notification.
-    if (finishedFromNotification)
-    {
-      stopForeground(true);
-      removeLocationUpdates();
-    }
+
     return START_NOT_STICKY;
   }
 
-  @Override
-  public void onConfigurationChanged(Configuration newConfig)
-  {
-    super.onConfigurationChanged(newConfig);
-    mChangingConfiguration = true;
-  }
-
+  @Nullable
   @Override
   public IBinder onBind(Intent intent)
   {
-    Logger.i(TAG, "in onBind()");
-    stopForeground(true);
-    mChangingConfiguration = false;
-    return mBinder;
+    Logger.i(TAG);
+    return null;
   }
 
-  @Override
-  public void onRebind(Intent intent)
+  @RequiresApi(api = Build.VERSION_CODES.S)
+  private void startForegroundS(int id, Notification notification)
   {
-    Logger.i(TAG, "in onRebind()");
-    stopForeground(true);
-    mChangingConfiguration = false;
-    super.onRebind(intent);
-  }
-
-  @Override
-  public boolean onUnbind(Intent intent)
-  {
-    Logger.i(TAG, "Last client unbound from service");
-
-    // Called when the last client unbinds from this
-    // service. If this method is called due to a configuration change in activity, we
-    // do nothing. Otherwise, we make this service a foreground service.
-    removeLocationUpdates();
-    if (!mChangingConfiguration)
+    try
     {
-      Logger.i(TAG, "Starting foreground service");
-      startForeground(NOTIFICATION_ID, getNotification());
+      startForeground(id, notification);
+      Logger.w(TAG, "ForegroundService is allowed");
     }
-    return true;
-  }
-
-  public void doForeground()
-  {
-    if(!serviceIsRunningInForeground(this))
+    catch (ForegroundServiceStartNotAllowedException e)
     {
-      Logger.i(TAG, "Starting foreground service");
-      startForeground(NOTIFICATION_ID, getNotification());
+      Logger.e(TAG, "Oops! ForegroundService is not allowed", e);
     }
   }
 
   @NonNull
   private Notification getNotification()
   {
-    Intent stopSelf = new Intent(this, NavigationService.class);
-    stopSelf.putExtra(EXTRA_STOP_SERVICE, true);
     final int FLAG_IMMUTABLE = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ? 0 : PendingIntent.FLAG_IMMUTABLE;
-    PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,
+
+    final Intent stopIntent = new Intent(this, MwmActivity.class);
+    stopIntent.putExtra(MwmActivity.EXTRA_STOP_NAVIGATION, true);
+    stopIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    final PendingIntent stopPendingIntent = PendingIntent.getActivity(this, 0, stopIntent,
         PendingIntent.FLAG_CANCEL_CURRENT | FLAG_IMMUTABLE);
 
-    // TODO (@velichkomarija): restore navigation from notification.
-    PendingIntent activityPendingIntent = PendingIntent
-        .getActivity(this, 0,
-                     new Intent(this, MwmActivity.class), FLAG_IMMUTABLE);
+    final Intent contentIntent = new Intent(this, MwmActivity.class);
+    final PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, FLAG_IMMUTABLE);
 
     Builder builder = new Builder(this, CHANNEL_ID)
-        .addAction(R.drawable.ic_cancel, getString(R.string.button_exit),
-                   pStopSelf)
-        .setContentIntent(activityPendingIntent)
+        .addAction(R.drawable.ic_cancel, getString(R.string.button_exit), stopPendingIntent)
+        .setContentIntent(contentPendingIntent)
         .setOngoing(true)
         .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
         .setCustomContentView(mRemoteViews)
@@ -215,52 +177,33 @@ public class NavigationService extends Service
 
   private void updateNotification(@Nullable RoutingInfo routingInfo)
   {
+    final RoutingController routingController = RoutingController.get();
+    // Ignore any pending notifications when service is stopping.
+    if (!routingController.isNavigating())
+      return;
+
     final String[] turnNotifications = Framework.nativeGenerateNotifications();
     if (turnNotifications != null)
     {
       mNavigationText = StringUtils.fixCaseInString(turnNotifications[0]);
       TtsPlayer.INSTANCE.playTurnNotifications(getApplicationContext(), turnNotifications);
+      mRemoteViews.setTextViewText(R.id.navigation_text, mNavigationText);
+      mRemoteViews.setViewVisibility(R.id.navigation_text, TextUtils.isEmpty(mNavigationText) ? View.GONE : View.VISIBLE);
     }
-    mRemoteViews.setTextViewText(R.id.navigation_text, mNavigationText);
 
-    StringBuilder stringBuilderNavigationSecondaryText = new StringBuilder();
-    final RoutingController routingController = RoutingController.get();
-    String routingArriveString = getString(R.string.routing_arrive);
-    stringBuilderNavigationSecondaryText
-        .append(String.format(routingArriveString, routingController.getEndPoint().getName()));
+    final StringBuilder secondaryTextBuilder = new StringBuilder();
+    final String routingArriveString = getString(R.string.routing_arrive);
+    secondaryTextBuilder.append(String.format(routingArriveString, routingController.getEndPoint().getName()));
     if (routingInfo != null)
     {
-      stringBuilderNavigationSecondaryText
+      secondaryTextBuilder
           .append(": ")
           .append(Utils.calculateFinishTime(routingInfo.totalTimeInSeconds));
       mRemoteViews.setImageViewResource(R.id.navigation_icon, routingInfo.carDirection.getTurnRes());
       mRemoteViews.setTextViewText(R.id.navigation_distance_text, routingInfo.distToTurn.toString(getApplicationContext()));
     }
-    mRemoteViews.setTextViewText(R.id.navigation_secondary_text, stringBuilderNavigationSecondaryText
-        .toString());
-  }
-
-  private void removeLocationUpdates()
-  {
-    Logger.i(TAG, "Removing location updates");
-    LocationHelper.INSTANCE.removeListener(mLocationListener);
-    stopSelf();
-  }
-
-  private boolean serviceIsRunningInForeground(@NonNull Context context)
-  {
-    ActivityManager manager = (ActivityManager) context.getSystemService(
-        Context.ACTIVITY_SERVICE);
-    // TODO(@velichkomarija): replace getRunningServices().
-    // See issue https://github.com/android/location-samples/pull/243
-    for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
-    {
-      if (getClass().getName().equals(service.service.getClassName()))
-      {
-        if (service.foreground)
-          return true;
-      }
-    }
-    return false;
+    final String secondaryText = secondaryTextBuilder.toString();
+    mRemoteViews.setTextViewText(R.id.navigation_secondary_text, secondaryText);
+    mRemoteViews.setViewVisibility(R.id.navigation_secondary_text, TextUtils.isEmpty(secondaryText) ? View.GONE : View.VISIBLE);
   }
 }

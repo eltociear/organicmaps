@@ -4,8 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -14,12 +16,16 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StyleRes;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -99,6 +105,9 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Stack;
 
+import static android.Manifest.permission.ACCESS_BACKGROUND_LOCATION;
+import static android.Manifest.permission.POST_NOTIFICATIONS;
+
 public class MwmActivity extends BaseMwmFragmentActivity
     implements PlacePageActivationListener,
                View.OnTouchListener,
@@ -121,6 +130,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public static final String EXTRA_TASK = "map_task";
   public static final String EXTRA_LAUNCH_BY_DEEP_LINK = "launch_by_deep_link";
   public static final String EXTRA_BACK_URL = "backurl";
+  public static final String EXTRA_STOP_NAVIGATION = "stop_navigation";
   private static final String EXTRA_CONSUMED = "mwm.extra.intent.processed";
 
   private static final String[] DOCKED_FRAGMENTS = { SearchFragment.class.getName(),
@@ -185,6 +195,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   @Nullable
   private WindowInsetsCompat mCurrentWindowInsets;
+
+  @NonNull
+  private ActivityResultLauncher<String[]> mPermissionRequest;
 
   public interface LeftAnimationTrackListener
   {
@@ -376,6 +389,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     boolean isLaunchByDeepLink = getIntent().getBooleanExtra(EXTRA_LAUNCH_BY_DEEP_LINK, false);
     initViews(isLaunchByDeepLink);
     updateViewsInsets();
+
+    mPermissionRequest = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
+        this::onPermissionsResult);
 
     boolean isConsumed = savedInstanceState == null && processIntent(getIntent());
     boolean isFirstLaunch = Counters.isFirstLaunch(this);
@@ -907,6 +923,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final Notifier notifier = Notifier.from(getApplication());
     notifier.processNotificationExtras(intent);
 
+    if (intent.getBooleanExtra(EXTRA_STOP_NAVIGATION, false))
+      mNavigationController.onStopClicked();
+
     if (intent.hasExtra(EXTRA_TASK))
     {
       addTask(intent);
@@ -986,8 +1005,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   protected void onPause()
   {
-    if (!RoutingController.get().isNavigating())
-      TtsPlayer.INSTANCE.stop();
     if (mOnmapDownloader != null)
       mOnmapDownloader.onPause();
     mNavigationController.onActivityPaused(this);
@@ -1033,6 +1050,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     super.onSafeDestroy();
     mNavigationController.destroy();
+    mPermissionRequest.unregister();
+    mPermissionRequest = null;
   }
 
   @Override
@@ -1479,6 +1498,44 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mNavigationController.start(this);
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.navigation);
     refreshLightStatusBar();
+
+    if (!LocationHelper.INSTANCE.isActive())
+      LocationHelper.INSTANCE.start();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+    {
+      if (ActivityCompat.checkSelfPermission(this, ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        Logger.i(TAG, ACCESS_BACKGROUND_LOCATION + " permission is granted");
+      else
+      {
+        Logger.i(TAG, "Displaying " + ACCESS_BACKGROUND_LOCATION + " disclaimer");
+        new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+            // TODO: text
+            .setTitle("Background location")
+            .setMessage("bla bla")
+            .setCancelable(false)
+            .setNegativeButton(R.string.decline, (dlg, which) -> {
+              Logger.i(TAG, ACCESS_BACKGROUND_LOCATION + " disclaimer was rejected");
+            })
+            .setPositiveButton(R.string.accept, (dlg, which) -> {
+              Logger.i(TAG, ACCESS_BACKGROUND_LOCATION + " disclaimer was accepted");
+              Logger.w(TAG, "Requesting " + ACCESS_BACKGROUND_LOCATION + " permission");
+              mPermissionRequest.launch(new String[]{ACCESS_BACKGROUND_LOCATION});
+            })
+            .show();
+      }
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+    {
+      if (ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+        Logger.i(TAG, POST_NOTIFICATIONS + " permission is granted");
+      else
+      {
+        Logger.w(TAG, "Requesting " + POST_NOTIFICATIONS + " permission");
+        mPermissionRequest.launch(new String[]{POST_NOTIFICATIONS});
+      }
+    }
   }
 
   @Override
@@ -1844,5 +1901,18 @@ public class MwmActivity extends BaseMwmFragmentActivity
     Logger.d(TAG, "trim memory, level = " + level);
     if (level >= TRIM_MEMORY_RUNNING_LOW)
       Framework.nativeMemoryWarning();
+  }
+
+  @UiThread
+  private void onPermissionsResult(java.util.Map<String, Boolean> permissions)
+  {
+    Logger.d(TAG);
+    for (java.util.Map.Entry<String, Boolean> entry : permissions.entrySet())
+    {
+      if (entry.getValue())
+        Logger.i(TAG, entry.getKey() + " permission was granted");
+      else
+        Logger.w(TAG, entry.getKey() + " permission was refused");
+    }
   }
 }

@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,8 +38,6 @@ public class NavigationController implements Application.ActivityLifecycleCallba
                                              TrafficManager.TrafficCallback,
                                              NavMenu.NavMenuListener
 {
-  private static final String STATE_BOUND = "Bound";
-
   private final View mFrame;
 
   private final ImageView mNextTurnImage;
@@ -63,28 +62,6 @@ public class NavigationController implements Application.ActivityLifecycleCallba
 
   private final NavMenu mNavMenu;
   View.OnClickListener mOnSettingsClickListener;
-  @Nullable
-  private NavigationService mService = null;
-  private boolean mBound = false;
-  @NonNull
-  private final ServiceConnection mServiceConnection = new ServiceConnection()
-  {
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service)
-    {
-      NavigationService.LocalBinder binder = (NavigationService.LocalBinder) service;
-      mService = binder.getService();
-      mBound = true;
-      doBackground();
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name)
-    {
-      mService = null;
-      mBound = false;
-    }
-  };
 
   private void addWindowsInsets(@NonNull View topFrame)
   {
@@ -146,36 +123,14 @@ public class NavigationController implements Application.ActivityLifecycleCallba
     mSpeedCamSignalCompletionListener = new CameraWarningSignalCompletionListener(app);
   }
 
-  public void stop(MwmActivity parent)
+  public void stop(@NonNull MwmActivity parent)
   {
-    if (mBound)
-    {
-      parent.unbindService(mServiceConnection);
-      mBound = false;
-      if (mService != null)
-        mService.stopSelf();
-    }
+    parent.stopService(new Intent(parent, NavigationService.class));
   }
 
   public void start(@NonNull MwmActivity parent)
   {
-    parent.bindService(new Intent(parent, NavigationService.class),
-                       mServiceConnection,
-                       Context.BIND_AUTO_CREATE);
-    mBound = true;
-    parent.startService(new Intent(parent, NavigationService.class));
-  }
-
-  public void doForeground()
-  {
-    if (mService != null)
-      mService.doForeground();
-  }
-
-  public void doBackground()
-  {
-    if (mService != null)
-      mService.stopForeground(true);
+    ContextCompat.startForegroundService(parent, new Intent(parent, NavigationService.class));
   }
 
   private void updateVehicle(@NonNull RoutingInfo info)
@@ -292,14 +247,12 @@ public class NavigationController implements Application.ActivityLifecycleCallba
   public void onActivityResumed(@NonNull Activity activity)
   {
     mNavMenu.refreshTts();
-    if (mBound)
-      doBackground();
   }
 
   @Override
   public void onActivityPaused(Activity activity)
   {
-    doForeground();
+    // no op
   }
 
   @Override
@@ -311,14 +264,12 @@ public class NavigationController implements Application.ActivityLifecycleCallba
   @Override
   public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState)
   {
-    outState.putBoolean(STATE_BOUND, mBound);
+    // no op
   }
 
   public void onRestoreState(@NonNull Bundle savedInstanceState, @NonNull MwmActivity parent)
   {
-    mBound = savedInstanceState.getBoolean(STATE_BOUND);
-    if (mBound)
-      start(parent);
+    // no op
   }
 
   @Override

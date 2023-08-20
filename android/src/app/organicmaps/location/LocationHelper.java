@@ -1,15 +1,19 @@
 package app.organicmaps.location;
 
+import static android.Manifest.permission.ACCESS_BACKGROUND_LOCATION;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.POST_NOTIFICATIONS;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
@@ -18,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import app.organicmaps.Framework;
 import app.organicmaps.MwmApplication;
@@ -155,6 +160,22 @@ public enum LocationHelper implements Initializable<Context>, AppBackgroundTrack
     {
       if (!isActive())
         return;
+
+      final RoutingController routing = RoutingController.get();
+      if (routing.isNavigating()
+          &&
+          (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+              ContextCompat.checkSelfPermission(mContext, ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+          )
+          &&
+          (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+              ContextCompat.checkSelfPermission(mContext, POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+          )
+      )
+      {
+        Logger.w(TAG, "Navigation is in progress, keeping location in the background");
+        return;
+      }
 
       Logger.d(TAG, "Stopping in background");
       stop();

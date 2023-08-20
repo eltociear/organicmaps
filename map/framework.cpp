@@ -2585,11 +2585,7 @@ bool Framework::ParseDrapeDebugCommand(string const & query)
 
   if (desiredStyle != MapStyleCount)
   {
-#if defined(OMIM_OS_ANDROID)
-    MarkMapStyle(desiredStyle);
-#else
     SetMapStyle(desiredStyle);
-#endif
     return true;
   }
 
